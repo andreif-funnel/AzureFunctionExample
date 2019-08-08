@@ -15,6 +15,7 @@ steps:
     displayName: 'Use Python $(python.version)'
 
   - script: |
+      pip install --upgrade pip pipenv
       pipenv lock -r > Functions/requirements.txt
     displayName: 'Lock dependencies'
 
