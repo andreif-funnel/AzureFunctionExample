@@ -6,7 +6,7 @@
         "appInsightsName": "[concat(resourceGroup().name, 'AppInsights')]",
         "functionAppName": "[concat(resourceGroup().name, 'Functions')]",
         "storageAccountName": "[toLower(resourceGroup().name)]",
-        "containerName": "myContainer"
+        "containerName": "my-container"
     },
     "resources": [
         {

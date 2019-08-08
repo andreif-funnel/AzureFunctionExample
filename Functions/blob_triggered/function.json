@@ -7,7 +7,7 @@
         "name": "blin",
         "direction": "in",
         "type": "blobTrigger",
-        "path": "myContainer/{id}",
+        "path": "my-container/{id}",
         "connection": "AzureWebJobsStorage"
       }
     ]
