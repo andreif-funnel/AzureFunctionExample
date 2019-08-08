@@ -2,12 +2,12 @@
 
 pipeline:
 	@test -n "$(AZ_ORGANIZATION)"   || (echo "AZ_ORGANIZATION" ; exit 1)
-	@test -n "$(AZ_PROJECT)"        || (echo "AZ_PROJECT" ; exit 1)
+	@test -n "$(AZ_PROJECT)"        || (echo "AZ_PROJECT"      ; exit 1)
 	@test -n "$(AZ_SUBSCRIPTION)"   || (echo "AZ_SUBSCRIPTION" ; exit 1)
-	$(eval AZ_PIPELINE := "AzureFunctionExample")
+	$(eval AZ_PIPELINE       := "AzureFunctionExample")
 	$(eval AZ_RESOURCE_GROUP := "AzureFunctionExample")
-	$(eval AZ_LOCATION := "eastus")
-	$(eval REPO := "https://github.com/andreif-funnel/AzureFunctionExample")
+	$(eval AZ_LOCATION       := "eastus")
+	$(eval REPO              := "https://github.com/andreif-funnel/AzureFunctionExample")
 
 	az extension add --name azure-devops
 	az devops configure --defaults organization=https://dev.azure.com/$(AZ_ORGANIZATION)/ project=$(AZ_PROJECT)
