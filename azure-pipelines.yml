@@ -1,0 +1,59 @@
+trigger:
+  - master
+
+pool:
+  vmImage: 'ubuntu-latest'
+strategy:
+  matrix:
+    Python37:
+      python.version: '3.7'
+
+steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '$(python.version)'
+    displayName: 'Use Python $(python.version)'
+
+  - script: |
+      pipenv lock -r > Functions/requirements.txt
+    displayName: 'Lock dependencies'
+
+  - task: ArchiveFiles@2
+    inputs:
+      rootFolderOrFile: Functions
+      includeRootFolder: false
+      archiveType: zip
+      archiveFile: '$(Build.ArtifactStagingDirectory)/build-$(Build.BuildId).zip'
+      replaceExistingArchive: true
+      verbose: true
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)/build-$(Build.BuildId).zip'
+      artifactName: drop
+
+  - task: AzureCLI@1
+    inputs:
+      azureSubscription: $(azureSubscription)
+      scriptLocation: inlineScript
+      inlineScript: |
+        az group create \
+          --name $(resourceGroupName) \
+          --location $(location) \
+          --verbose
+        az group deployment create \
+          --resource-group $(resourceGroupName) \
+          --template-file $(System.DefaultWorkingDirectory)/Resources.json \
+          --mode Complete \
+          --verbose
+      workingDirectory: Test
+
+  - task: AzureFunctionApp@1
+    inputs:
+      azureSubscription: $(azureSubscription)
+      appType: 'functionAppLinux'
+      appName: '$(resourceGroupName)Functions'
+      deployToSlotOrASE: true
+      resourceGroupName: $(resourceGroupName)
+      slotName: 'production'
+      package: '$(Build.ArtifactStagingDirectory)/**/*.zip'
