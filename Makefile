@@ -33,4 +33,4 @@ resources:
 	  --template-file Resources.json \
 	  --mode Complete \
 	  --debug \
-	  --verbose
+	  --verbose 2>&1 | tee az-group-deployment-create.log
