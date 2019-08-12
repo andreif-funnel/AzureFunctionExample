@@ -45,7 +45,6 @@ steps:
         az group deployment create \
           --resource-group $(resourceGroupName) \
           --template-file $(System.DefaultWorkingDirectory)/Resources.json \
-          --mode Complete \
           --verbose
       workingDirectory: Test
 

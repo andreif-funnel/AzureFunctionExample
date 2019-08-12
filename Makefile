@@ -31,6 +31,5 @@ resources:
 	az group deployment create \
 	  --resource-group $(AZ_RESOURCE_GROUP) \
 	  --template-file Resources.json \
-	  --mode Complete \
 	  --debug \
 	  --verbose 2>&1 | tee az-group-deployment-create.log
