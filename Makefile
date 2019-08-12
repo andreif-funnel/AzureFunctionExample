@@ -12,12 +12,19 @@ pipeline:
 
 	az extension add --name azure-devops
 	az devops configure --defaults organization=https://dev.azure.com/$(AZ_ORGANIZATION)/ project=$(AZ_PROJECT)
+
 	az pipelines variable create --name azureSubscription --value "$(AZ_SUBSCRIPTION)" --pipeline-name $(AZ_PIPELINE) || \
 	az pipelines variable update --name azureSubscription --value "$(AZ_SUBSCRIPTION)" --pipeline-name $(AZ_PIPELINE)
+
 	az pipelines variable create --name resourceGroupName --value $(AZ_RESOURCE_GROUP) --pipeline-name $(AZ_PIPELINE) || \
 	az pipelines variable update --name resourceGroupName --value $(AZ_RESOURCE_GROUP) --pipeline-name $(AZ_PIPELINE)
+
 	az pipelines variable create --name location          --value $(AZ_LOCATION)       --pipeline-name $(AZ_PIPELINE) || \
 	az pipelines variable update --name location          --value $(AZ_LOCATION)       --pipeline-name $(AZ_PIPELINE)
+
+	az pipelines variable create --name system.debug      --value true                 --pipeline-name $(AZ_PIPELINE) || \
+	az pipelines variable update --name system.debug      --value true                 --pipeline-name $(AZ_PIPELINE)
+
 	az pipelines create --name $(AZ_PIPELINE) --yml-path azure-pipelines.yml --repository $(REPO) || \
 	az pipelines update --name $(AZ_PIPELINE) --yml-path azure-pipelines.yml
 
