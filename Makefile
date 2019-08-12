@@ -4,6 +4,13 @@ AZ_RESOURCE_GROUP := AzureFunctionExample
 REPO              := https://github.com/andreif-funnel/AzureFunctionExample
 
 
+.PHONY: clean
+clean:
+	pipenv --rm
+	rm -r Functions/.python_packages
+	rm -r Functions/requirements.txt
+
+
 .PHONY: pipeline
 pipeline:
 	@test -n "$(AZ_ORGANIZATION)"   || (echo "AZ_ORGANIZATION" ; exit 1)
