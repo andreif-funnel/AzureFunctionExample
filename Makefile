@@ -33,3 +33,16 @@ resources:
 	  --template-file Resources.json \
 	  --debug \
 	  --verbose 2>&1 | tee az-group-deployment-create.log
+
+
+.PHONY: function
+function:
+	pipenv lock -r > Functions/requirements.txt
+	cd Functions && func azure functionapp publish $(AZ_RESOURCE_GROUP)Functions --build-native-deps
+
+
+.PHONY: deployments
+list_deployments:
+	az group deployment list --resource-group $(AZ_RESOURCE_GROUP) | \
+	jq '[.[].properties | {when:.timestamp, state:.provisioningState, \
+	 mode:.mode, duration:.duration, corr:.correlationId}]'
