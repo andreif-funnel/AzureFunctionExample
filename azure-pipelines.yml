@@ -17,10 +17,12 @@ steps:
   - script: |
       pip install --upgrade pip pipenv
       pipenv lock --requirements > Functions/requirements.txt
-      cat Functions/requirements.txt
-      pip install -r Functions/requirements.txt
-      cp Functions/requirements.txt requirements.txt
+      cd Functions
+      python3 -m venv .env
+      source .env/bin/activate
+      pip install -r requirements.txt
       ls -la
+      pwd
     displayName: 'Lock dependencies'
 
   - task: ArchiveFiles@2
