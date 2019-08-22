@@ -17,6 +17,7 @@ steps:
   - script: |
       pip install --upgrade pip pipenv
       pipenv lock --requirements > Functions/requirements.txt
+      cat Functions/requirements.txt
     displayName: 'Lock dependencies'
 
   - task: ArchiveFiles@2
