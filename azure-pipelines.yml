@@ -18,10 +18,14 @@ steps:
       pip install --upgrade pip pipenv
       pipenv lock --requirements > Functions/requirements.txt
       cat Functions/requirements.txt
+      pip install -r Functions/requirements.txt
+      cp Functions/requirements.txt requirements.txt
+      ls -la
     displayName: 'Lock dependencies'
 
   - task: ArchiveFiles@2
     inputs:
+#      rootFolderOrFile: '$(Build.SourcesDirectory)'
       rootFolderOrFile: Functions
       includeRootFolder: false
       archiveType: zip
