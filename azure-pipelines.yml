@@ -1,92 +1,71 @@
 trigger:
   - master
 
-variables:
-  vmImage: ubuntu-latest
+pool:
+  vmImage: 'ubuntu-latest'
+strategy:
+  matrix:
+    Python36:
+      python.version: '3.6'
 
-stages:
-  - stage: Build
-    displayName: Build stage
-    jobs:
-      - job: Build
-        displayName: Build
-        pool:
-          vmImage: $(vmImage)
+steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '$(python.version)'
+    displayName: 'Use Python $(python.version)'
 
-        steps:
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: 3.6
-            displayName: 'Use Python 3.6'
+  - script: |
+      pip install --upgrade pip pipenv
+      pipenv lock --requirements > Functions/requirements.txt
+      cd Functions
+      python3.6 -m venv worker_venv
+      source worker_venv/bin/activate
+      pip3.6 install -r requirements.txt
+      ls -la
+      pwd
+    displayName: 'Lock dependencies'
 
-          - script: |
-              pip install --upgrade pip pipenv
-              pipenv lock --requirements > Functions/requirements.txt
-              cd Functions
-              python3.6 -m venv worker_venv
-              source worker_venv/bin/activate
-              pip3.6 install -r requirements.txt
-              ls -la
-              pwd
-            displayName: 'Lock dependencies'
+  - task: ArchiveFiles@2
+    inputs:
+#      rootFolderOrFile: '$(Build.SourcesDirectory)'
+      rootFolderOrFile: Functions
+      includeRootFolder: false
+      archiveType: zip
+      archiveFile: '$(Build.ArtifactStagingDirectory)/build-$(Build.BuildId).zip'
+      replaceExistingArchive: true
+      verbose: true
 
-          - task: ArchiveFiles@2
-            inputs:
-              #rootFolderOrFile: '$(Build.SourcesDirectory)'
-              rootFolderOrFile: Functions
-              includeRootFolder: false
-              archiveType: zip
-              archiveFile: '$(Build.ArtifactStagingDirectory)/build-$(Build.BuildId).zip'
-              replaceExistingArchive: true
-              verbose: true
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)/build-$(Build.BuildId).zip'
+      artifactName: drop
 
-          - publish: '$(Build.ArtifactStagingDirectory)/build-$(Build.BuildId).zip'
-            artifact: drop
+  - task: AzureCLI@1
+    inputs:
+      azureSubscription: $(azureSubscription)
+      scriptLocation: inlineScript
+      inlineScript: |
+        test -n "$(AWS_S3_BUCKET)" || (echo "AWS_S3_BUCKET" ; exit 1)
+        az group create \
+          --name $(resourceGroupName) \
+          --location $(location) \
+          --verbose
+        az group deployment create \
+          --resource-group $(resourceGroupName) \
+          --template-file $(System.DefaultWorkingDirectory)/Resources.json \
+          --parameters \
+            AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID) \
+            AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY) \
+            AWS_S3_BUCKET=$(AWS_S3_BUCKET) \
+          --verbose
+      workingDirectory: Test
 
-
-  - stage: Deploy
-    displayName: Deploy stage
-    dependsOn: Build
-    condition: succeeded()
-
-    jobs:
-      - deployment: Deploy
-        displayName: Deploy
-        environment: development
-        pool:
-          vmImage: $(vmImage)
-
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - task: AzureCLI@1
-                  inputs:
-                    azureSubscription: $(azureSubscription)
-                    scriptLocation: inlineScript
-                    inlineScript: |
-                      test -n "$(AWS_S3_BUCKET)" || (echo "AWS_S3_BUCKET" ; exit 1)
-                      az group create \
-                        --name $(resourceGroupName) \
-                        --location $(location) \
-                        --verbose
-                      az group deployment create \
-                        --resource-group $(resourceGroupName) \
-                        --template-file $(System.DefaultWorkingDirectory)/Resources.json \
-                        --parameters \
-                          AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID) \
-                          AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY) \
-                          AWS_S3_BUCKET=$(AWS_S3_BUCKET) \
-                        --verbose
-                    workingDirectory: Test
-
-                - task: AzureFunctionApp@1
-                  displayName: 'Azure functions app deploy'
-                  inputs:
-                    azureSubscription: $(azureSubscription)
-                    resourceGroupName: $(resourceGroupName)
-                    appType: functionAppLinux
-                    appName: $(resourceGroupName)Functions
-                    package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
-                    deployToSlotOrASE: true
-                    slotName: production
+  - task: AzureFunctionApp@1
+    inputs:
+      azureSubscription: $(azureSubscription)
+      appType: 'functionAppLinux'
+      appName: '$(resourceGroupName)Functions'
+      deployToSlotOrASE: true
+      resourceGroupName: $(resourceGroupName)
+      slotName: 'production'
+      package: '$(Build.ArtifactStagingDirectory)/**/*.zip'
