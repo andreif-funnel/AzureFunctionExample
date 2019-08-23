@@ -1,7 +1,11 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2018-05-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
-    "parameters": {},
+    "parameters": {
+        "AWS_ACCESS_KEY_ID": {"type": "string"},
+        "AWS_SECRET_ACCESS_KEY": {"type": "string"},
+        "AWS_S3_BUCKET": {"type": "string"}
+    },
     "variables": {
         "appInsightsName": "[concat(resourceGroup().name, 'AppInsights')]",
         "functionAppName": "[concat(resourceGroup().name, 'Functions')]",
@@ -102,6 +106,9 @@
                     "AzureWebJobsDashboard": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountName'),'2019-04-01').keys[0].value)]",
                     "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('microsoft.insights/components/', variables('appInsightsName')), '2015-05-01').InstrumentationKey]",
                     "FUNCTIONS_EXTENSION_VERSION": "~2",
+                    "AWS_ACCESS_KEY_ID": "[parameters('AWS_ACCESS_KEY_ID')]",
+                    "AWS_SECRET_ACCESS_KEY": "[parameters('AWS_SECRET_ACCESS_KEY')]",
+                    "AWS_S3_BUCKET": "[parameters('AWS_S3_BUCKET')]",
                     "FUNCTIONS_WORKER_RUNTIME": "python"
                   }
                }

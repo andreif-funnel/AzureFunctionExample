@@ -45,6 +45,7 @@ steps:
       azureSubscription: $(azureSubscription)
       scriptLocation: inlineScript
       inlineScript: |
+        test -n "$(AWS_S3_BUCKET)" || (echo "AWS_S3_BUCKET" ; exit 1)
         az group create \
           --name $(resourceGroupName) \
           --location $(location) \
@@ -52,6 +53,10 @@ steps:
         az group deployment create \
           --resource-group $(resourceGroupName) \
           --template-file $(System.DefaultWorkingDirectory)/Resources.json \
+          --parameters \
+            AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID) \
+            AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY) \
+            AWS_S3_BUCKET=$(AWS_S3_BUCKET) \
           --verbose
       workingDirectory: Test
 

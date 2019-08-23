@@ -2,6 +2,7 @@ AZ_LOCATION       := eastus
 AZ_PIPELINE       := AzureFunctionExample
 AZ_RESOURCE_GROUP := AzureFunctionExample
 REPO              := https://github.com/andreif-funnel/AzureFunctionExample
+AZ_APP            := $(AZ_RESOURCE_GROUP)Functions
 
 
 .PHONY: clean
@@ -36,6 +37,22 @@ pipeline:
 	az pipelines update --name $(AZ_PIPELINE) --yml-path azure-pipelines.yml
 
 
+.PHONY: pipeline_secrets
+pipeline_secrets:
+	@test -n "$(AWS_S3_BUCKET)"         || (echo "AWS_S3_BUCKET"         ; exit 1)
+	@test -n "$(AWS_ACCESS_KEY_ID)"     || (echo "AWS_ACCESS_KEY_ID"     ; exit 1)
+	@test -n "$(AWS_SECRET_ACCESS_KEY)" || (echo "AWS_SECRET_ACCESS_KEY" ; exit 1)
+
+	az pipelines variable create --name AWS_S3_BUCKET         --value $(AWS_S3_BUCKET)         --pipeline-name $(AZ_PIPELINE) || \
+	az pipelines variable update --name AWS_S3_BUCKET         --value $(AWS_S3_BUCKET)         --pipeline-name $(AZ_PIPELINE)
+
+	az pipelines variable create --name AWS_ACCESS_KEY_ID     --value $(AWS_ACCESS_KEY_ID)     --pipeline-name $(AZ_PIPELINE) || \
+	az pipelines variable update --name AWS_ACCESS_KEY_ID     --value $(AWS_ACCESS_KEY_ID)     --pipeline-name $(AZ_PIPELINE)
+
+	az pipelines variable create --name AWS_SECRET_ACCESS_KEY --value $(AWS_SECRET_ACCESS_KEY) --pipeline-name $(AZ_PIPELINE) || \
+	az pipelines variable update --name AWS_SECRET_ACCESS_KEY --value $(AWS_SECRET_ACCESS_KEY) --pipeline-name $(AZ_PIPELINE)
+
+
 .PHONY: resources
 resources:
 	az group create \
@@ -52,10 +69,36 @@ resources:
 .PHONY: function
 function:
 	pipenv lock -r > Functions/requirements.txt
-	cd Functions && func azure functionapp publish $(AZ_RESOURCE_GROUP)Functions --build-native-deps
+	cd Functions && func azure functionapp publish $(AZ_APP) --build-native-deps
 
 
-.PHONY: deployments
+.PHONY: list_settings
+list_settings:
+	az webapp config appsettings list --name $(AZ_APP) --resource-group $(AZ_RESOURCE_GROUP)
+
+
+.PHONY: set_secrets
+set_secrets:
+	az webapp config appsettings set -g $(AZ_RESOURCE_GROUP) -n $(AZ_APP) --settings \
+		AWS_S3_BUCKET=$(AWS_S3_BUCKET) \
+		AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID) \
+		AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
+
+
+.PHONY: create_key_vault
+create_key_vault:
+	az group create --name $resourceGroupName --location $location
+	az keyvault create \
+	  --name $(AZ_RESOURCE_GROUP) \
+	  --resource-group $(AZ_RESOURCE_GROUP) \
+	  --location $(AZ_LOCATION) \
+	  --enabled-for-template-deployment true
+	az keyvault secret set --vault-name $(AZ_RESOURCE_GROUP) --name "AWS_S3_BUCKET"         --value "$(AWS_S3_BUCKET)"
+	az keyvault secret set --vault-name $(AZ_RESOURCE_GROUP) --name "AWS_ACCESS_KEY_ID"     --value "$(AWS_ACCESS_KEY_ID)"
+	az keyvault secret set --vault-name $(AZ_RESOURCE_GROUP) --name "AWS_SECRET_ACCESS_KEY" --value "$(AWS_SECRET_ACCESS_KEY)"
+
+
+.PHONY: list_deployments
 list_deployments:
 	az group deployment list --resource-group $(AZ_RESOURCE_GROUP) | \
 	jq '[.[].properties | {when:.timestamp, state:.provisioningState, \
