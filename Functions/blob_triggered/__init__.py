@@ -28,5 +28,6 @@ def main(blin: azure.functions.InputStream):
         Bucket=bucket, Key=s3_key, WaiterConfig={"Delay": 2, "MaxAttempts": 5},
     )
     bs = azure.storage.blob.BlockBlobService(connection_string=os.environ["AzureWebJobsStorage"])
-    bs.delete_blob(container_name="my-container", blob_name=blin.name)
-    logging.info([b.name for b in bs.list_blobs(container_name="my-container")])
+    container = "my-container"
+    bs.delete_blob(container_name=container, blob_name=blin.name)
+    logging.info([b.name for b in bs.list_blobs(container_name=container)])
