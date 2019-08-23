@@ -46,11 +46,11 @@ pipeline_secrets:
 	az pipelines variable create --name AWS_S3_BUCKET         --value $(AWS_S3_BUCKET)         --pipeline-name $(AZ_PIPELINE) || \
 	az pipelines variable update --name AWS_S3_BUCKET         --value $(AWS_S3_BUCKET)         --pipeline-name $(AZ_PIPELINE)
 
-	az pipelines variable create --name AWS_ACCESS_KEY_ID     --value $(AWS_ACCESS_KEY_ID)     --pipeline-name $(AZ_PIPELINE) || \
-	az pipelines variable update --name AWS_ACCESS_KEY_ID     --value $(AWS_ACCESS_KEY_ID)     --pipeline-name $(AZ_PIPELINE)
+	az pipelines variable create --name AWS_ACCESS_KEY_ID     --value $(AWS_ACCESS_KEY_ID)     --pipeline-name $(AZ_PIPELINE) --secret true || \
+	az pipelines variable update --name AWS_ACCESS_KEY_ID     --value $(AWS_ACCESS_KEY_ID)     --pipeline-name $(AZ_PIPELINE) --secret true
 
-	az pipelines variable create --name AWS_SECRET_ACCESS_KEY --value $(AWS_SECRET_ACCESS_KEY) --pipeline-name $(AZ_PIPELINE) || \
-	az pipelines variable update --name AWS_SECRET_ACCESS_KEY --value $(AWS_SECRET_ACCESS_KEY) --pipeline-name $(AZ_PIPELINE)
+	az pipelines variable create --name AWS_SECRET_ACCESS_KEY --value $(AWS_SECRET_ACCESS_KEY) --pipeline-name $(AZ_PIPELINE) --secret true || \
+	az pipelines variable update --name AWS_SECRET_ACCESS_KEY --value $(AWS_SECRET_ACCESS_KEY) --pipeline-name $(AZ_PIPELINE) --secret true
 
 
 .PHONY: resources

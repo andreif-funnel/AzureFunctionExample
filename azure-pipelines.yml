@@ -2,7 +2,7 @@ trigger:
   - master
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: ubuntu-latest
 
 steps:
   - task: UsePythonVersion@0
@@ -19,7 +19,7 @@ steps:
       pip3.6 install -r requirements.txt
       ls -la
       pwd
-    displayName: 'Lock dependencies'
+    displayName: 'Install dependencies'
 
   - task: ArchiveFiles@2
     inputs:

@@ -10,10 +10,6 @@ def main(blin: azure.functions.InputStream):
     logging.info(f"Python blob trigger function processed blob \n"
                  f"Name: {blin.name}\n"
                  f"Blob Size: {blin.length} bytes")
-
-    data = blin.read()
-    logging.info(data)
-
     s3 = boto3.client(
         "s3",
         aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
@@ -23,7 +19,7 @@ def main(blin: azure.functions.InputStream):
     token, filename = filename.split('_')
     bucket = os.environ["AWS_S3_BUCKET"]
     s3_key = f"{token}/{filename}"
-    s3.put_object(Bucket=bucket, Key=s3_key, Body=data)
+    s3.put_object(Bucket=bucket, Key=s3_key, Body=blin.read())
     s3.get_waiter("object_exists").wait(
         Bucket=bucket, Key=s3_key, WaiterConfig={"Delay": 2, "MaxAttempts": 5},
     )
