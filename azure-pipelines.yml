@@ -3,16 +3,12 @@ trigger:
 
 pool:
   vmImage: 'ubuntu-latest'
-strategy:
-  matrix:
-    Python36:
-      python.version: '3.6'
 
 steps:
   - task: UsePythonVersion@0
     inputs:
-      versionSpec: '$(python.version)'
-    displayName: 'Use Python $(python.version)'
+      versionSpec: 3.6
+    displayName: 'Use Python 3.6'
 
   - script: |
       pip install --upgrade pip pipenv
@@ -27,7 +23,6 @@ steps:
 
   - task: ArchiveFiles@2
     inputs:
-#      rootFolderOrFile: '$(Build.SourcesDirectory)'
       rootFolderOrFile: Functions
       includeRootFolder: false
       archiveType: zip
@@ -63,9 +58,9 @@ steps:
   - task: AzureFunctionApp@1
     inputs:
       azureSubscription: $(azureSubscription)
-      appType: 'functionAppLinux'
-      appName: '$(resourceGroupName)Functions'
+      appType: functionAppLinux
+      appName: $(resourceGroupName)Functions
       deployToSlotOrASE: true
       resourceGroupName: $(resourceGroupName)
-      slotName: 'production'
+      slotName: production
       package: '$(Build.ArtifactStagingDirectory)/**/*.zip'
