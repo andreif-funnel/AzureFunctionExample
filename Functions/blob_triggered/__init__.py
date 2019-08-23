@@ -29,5 +29,7 @@ def main(blin: azure.functions.InputStream):
     )
     bs = azure.storage.blob.BlockBlobService(connection_string=os.environ["AzureWebJobsStorage"])
     container = "my-container"
+    logging.info([b.name for b in bs.list_blobs(container_name=container)])
+    logging.info(f"Deleting {filename}...")
     bs.delete_blob(container_name=container, blob_name=filename)
     logging.info([b.name for b in bs.list_blobs(container_name=container)])
